@@ -1,0 +1,2318 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#ffffff">
+    <title>TraçaFood</title>
+
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <style>
+        /* ─────────────────────────────────────────
+   TOKENS
+───────────────────────────────────────── */
+        :root {
+            --bg: #f4f6fa;
+            --surface: #ffffff;
+            --surface2: #f0f2f8;
+            --border: #e0e4f0;
+            --border2: #c8cfe8;
+            --green: #16a34a;
+            --green-light: #dcfce7;
+            --green-dark: #15803d;
+            --blue: #0891b2;
+            --blue-light: #e0f2fe;
+            --amber: #d97706;
+            --amber-light: #fef3c7;
+            --red: #dc2626;
+            --red-light: #fee2e2;
+            --text: #111827;
+            --text2: #374151;
+            --muted: #6b7280;
+            --muted2: #9ca3af;
+            --r: 14px;
+            --r-sm: 10px;
+            --font: 'Inter', system-ui, -apple-system, sans-serif;
+            --shadow-sm: 0 1px 4px rgba(0, 0, 0, .06);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, .08);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, .12);
+        }
+
+        /* ─────────────────────────────────────────
+   RESET & BASE
+───────────────────────────────────────── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            -webkit-font-smoothing: antialiased;
+            overscroll-behavior: none;
+        }
+
+        button {
+            font-family: var(--font);
+            cursor: pointer;
+        }
+
+        input,
+        select,
+        textarea {
+            font-family: var(--font);
+        }
+
+        img {
+            display: block;
+        }
+
+        /* ─────────────────────────────────────────
+   APP SHELL
+───────────────────────────────────────── */
+        #app {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: var(--bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ─────────────────────────────────────────
+   SCREENS
+───────────────────────────────────────── */
+        .screen {
+            display: none;
+            flex-direction: column;
+            min-height: 100vh;
+            animation: fadeUp .25s ease;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        /* ─────────────────────────────────────────
+   TOPBAR
+───────────────────────────────────────── */
+        .topbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            flex-shrink: 0;
+        }
+
+        .topbar-back {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border);
+            background: var(--surface2);
+            color: var(--text);
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all .15s;
+        }
+
+        .topbar-back:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        .topbar-title {
+            font-size: 15px;
+            font-weight: 700;
+            flex: 1;
+        }
+
+        .topbar-pill {
+            background: var(--green);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            flex-shrink: 0;
+        }
+
+        .topbar-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--green), var(--blue));
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* ─────────────────────────────────────────
+   SCROLL BODY
+───────────────────────────────────────── */
+        .scroll-body {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 24px;
+        }
+
+        .scroll-body.with-footer {
+            padding-bottom: 90px;
+        }
+
+        /* ─────────────────────────────────────────
+   STICKY FOOTER
+───────────────────────────────────────── */
+        .sticky-footer {
+            position: sticky;
+            bottom: 0;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 12px 16px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, .07);
+            z-index: 40;
+            flex-shrink: 0;
+        }
+
+        /* ─────────────────────────────────────────
+   BUTTONS
+───────────────────────────────────────── */
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 15px 20px;
+            border-radius: var(--r-sm);
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            transition: all .15s;
+        }
+
+        .btn-primary {
+            background: var(--green);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(22, 163, 74, .3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--green-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            background: var(--surface2);
+            color: var(--muted);
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text);
+            border: 1.5px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        .btn-danger {
+            background: var(--red-light);
+            color: var(--red);
+            border: 1.5px solid rgba(220, 38, 38, .2);
+        }
+
+        /* ─────────────────────────────────────────
+   SCREEN: LOGIN
+───────────────────────────────────────── */
+        #screen-login {
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+            background: linear-gradient(160deg, #eef4ff 0%, #f0fdf5 100%);
+            min-height: 100vh;
+        }
+
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            background: var(--surface);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 38px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 28px;
+            border: 1px solid var(--border);
+        }
+
+        .login-title {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -.5px;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .login-sub {
+            font-size: 14px;
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 48px;
+            max-width: 280px;
+        }
+
+        .btn-google {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 15px 20px;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-sm);
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            box-shadow: var(--shadow-md);
+            transition: all .15s;
+            margin-bottom: 16px;
+        }
+
+        .btn-google:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-1px);
+        }
+
+        .login-footer {
+            font-size: 12px;
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.7;
+            margin-top: 24px;
+        }
+
+        .login-version {
+            margin-top: 32px;
+            font-size: 11px;
+            color: var(--muted2);
+            text-align: center;
+        }
+
+        /* ─────────────────────────────────────────
+   SCREEN: HOME
+───────────────────────────────────────── */
+        #screen-home {
+            background: var(--bg);
+        }
+
+        .home-header {
+            padding: 20px 16px 16px;
+            background: linear-gradient(180deg, #edf4ff, var(--bg));
+        }
+
+        .home-greet {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .home-name {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -.3px;
+        }
+
+        .event-card {
+            margin: 0 16px 20px;
+            background: var(--surface);
+            border-radius: var(--r);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .event-card-top {
+            padding: 14px 16px 12px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, #edfdf5, #e0f7ff);
+        }
+
+        .event-label {
+            font-size: 11px;
+            color: var(--green);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            margin-bottom: 3px;
+        }
+
+        .event-name {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .event-meta {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .event-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: var(--border);
+        }
+
+        .event-stat {
+            background: var(--surface);
+            padding: 12px 0;
+            text-align: center;
+        }
+
+        .event-stat-val {
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .event-stat-lbl {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .val-green {
+            color: var(--green);
+        }
+
+        .val-amber {
+            color: var(--amber);
+        }
+
+        .val-red {
+            color: var(--red);
+        }
+
+        .home-actions {
+            padding: 0 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .home-cta-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px;
+            background: var(--green);
+            border-radius: var(--r);
+            border: none;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            box-shadow: 0 4px 16px rgba(22, 163, 74, .3);
+            transition: all .15s;
+            width: 100%;
+            text-align: left;
+        }
+
+        .home-cta-main:hover {
+            background: var(--green-dark);
+            transform: translateY(-1px);
+        }
+
+        .home-cta-main .cta-icon {
+            font-size: 22px;
+        }
+
+        .home-cta-secondary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: var(--surface);
+            border-radius: var(--r);
+            border: 1.5px solid var(--border);
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: var(--shadow-sm);
+            transition: all .15s;
+            width: 100%;
+            text-align: left;
+        }
+
+        .home-cta-secondary:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        .section-title {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            padding: 0 16px 10px;
+        }
+
+        .fiche-item {
+            margin: 0 16px 8px;
+            background: var(--surface);
+            border-radius: var(--r-sm);
+            border: 1.5px solid var(--border);
+            padding: 13px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow-sm);
+            transition: all .15s;
+            cursor: pointer;
+        }
+
+        .fiche-item:hover {
+            border-color: var(--blue);
+        }
+
+        .fiche-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .dot-ok {
+            background: var(--green);
+        }
+
+        .dot-warn {
+            background: var(--amber);
+        }
+
+        .dot-bad {
+            background: var(--red);
+        }
+
+        .fiche-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .fiche-plat {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .fiche-meta {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .fiche-temp {
+            font-size: 14px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .temp-ok {
+            color: var(--green);
+        }
+
+        .temp-warn {
+            color: var(--amber);
+        }
+
+        .temp-bad {
+            color: var(--red);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 32px 20px;
+            color: var(--muted);
+        }
+
+        .empty-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+
+        .empty-text {
+            font-size: 13px;
+        }
+
+        /* ─────────────────────────────────────────
+   SCREEN: FORM
+───────────────────────────────────────── */
+        .progress-bar-wrap {
+            height: 4px;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--green), var(--blue));
+            border-radius: 4px;
+            transition: width .4s ease;
+        }
+
+        .form-body {
+            padding: 20px 16px 0;
+        }
+
+        .step-eyebrow {
+            font-size: 11px;
+            color: var(--green);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 4px;
+        }
+
+        .step-title {
+            font-size: 19px;
+            font-weight: 800;
+            letter-spacing: -.3px;
+            margin-bottom: 22px;
+            line-height: 1.3;
+        }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
+        .field-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text2);
+            margin-bottom: 7px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .field-req {
+            color: var(--red);
+            font-weight: 400;
+        }
+
+        .field-input,
+        .field-select,
+        .field-textarea {
+            width: 100%;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-sm);
+            padding: 13px 14px;
+            font-size: 15px;
+            color: var(--text);
+            outline: none;
+            transition: border-color .15s, box-shadow .15s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .field-input:focus,
+        .field-select:focus,
+        .field-textarea:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(8, 145, 178, .1);
+        }
+
+        .field-input::placeholder,
+        .field-textarea::placeholder {
+            color: var(--muted2);
+        }
+
+        .field-select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+            cursor: pointer;
+        }
+
+        .field-textarea {
+            resize: none;
+            min-height: 90px;
+            line-height: 1.5;
+        }
+
+        /* Chips */
+        .chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            padding: 9px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--muted);
+            transition: all .15s;
+            user-select: none;
+        }
+
+        .chip:hover {
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        .chip.active {
+            border-color: var(--green);
+            background: var(--green-light);
+            color: var(--green);
+        }
+
+        /* Température */
+        .temp-widget {
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-sm);
+            padding: 18px 16px 14px;
+        }
+
+        .temp-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .temp-display {
+            flex: 1;
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+
+        .temp-num {
+            font-size: 52px;
+            font-weight: 900;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+            transition: color .2s;
+        }
+
+        .temp-unit {
+            font-size: 22px;
+            color: var(--muted);
+        }
+
+        .temp-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .temp-btn {
+            width: 46px;
+            height: 46px;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-sm);
+            font-size: 24px;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .15s;
+            box-shadow: var(--shadow-sm);
+            line-height: 1;
+        }
+
+        .temp-btn:hover {
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        .temp-btn:active {
+            transform: scale(.95);
+        }
+
+        .temp-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: var(--r-sm);
+            font-size: 13px;
+            font-weight: 600;
+            border: 1.5px solid transparent;
+        }
+
+        .badge-ok {
+            background: var(--green-light);
+            color: var(--green);
+            border-color: rgba(22, 163, 74, .2);
+        }
+
+        .badge-warn {
+            background: var(--amber-light);
+            color: var(--amber);
+            border-color: rgba(217, 119, 6, .2);
+        }
+
+        .badge-bad {
+            background: var(--red-light);
+            color: var(--red);
+            border-color: rgba(220, 38, 38, .2);
+        }
+
+        /* Photo */
+        .photo-drop {
+            border: 2px dashed var(--border2);
+            border-radius: var(--r-sm);
+            padding: 36px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            background: var(--surface2);
+            transition: all .2s;
+            text-align: center;
+        }
+
+        .photo-drop:hover,
+        .photo-drop.drag-over {
+            border-color: var(--blue);
+            background: var(--blue-light);
+        }
+
+        .photo-drop-icon {
+            font-size: 36px;
+        }
+
+        .photo-drop-label {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .photo-drop-hint {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .photo-preview-wrap {
+            position: relative;
+            border-radius: var(--r-sm);
+            overflow: hidden;
+            border: 2px solid var(--green);
+            display: none;
+        }
+
+        .photo-preview-wrap img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .photo-preview-badge {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, .55);
+            color: #fff;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            backdrop-filter: blur(4px);
+        }
+
+        .photo-retake {
+            margin-top: 8px;
+            width: 100%;
+            padding: 10px;
+            background: none;
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-sm);
+            font-size: 13px;
+            color: var(--muted);
+            display: none;
+            transition: all .15s;
+        }
+
+        .photo-retake:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        #photo-input {
+            display: none;
+        }
+
+        /* Résumé */
+        .recap-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .recap-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 13px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .recap-row:last-child {
+            border-bottom: none;
+        }
+
+        .recap-key {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .recap-val {
+            font-size: 13px;
+            font-weight: 700;
+            text-align: right;
+            max-width: 60%;
+        }
+
+        /* ─────────────────────────────────────────
+   SCREEN: SUCCESS
+───────────────────────────────────────── */
+        #screen-success {
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+            background: linear-gradient(160deg, #f0fdf4, #eef4ff);
+            text-align: center;
+        }
+
+        .success-ring {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background: var(--green-light);
+            border: 3px solid var(--green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 44px;
+            margin-bottom: 24px;
+            animation: popIn .4s cubic-bezier(.175, .885, .32, 1.275);
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(.5);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .success-sub {
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .success-meta {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 16px;
+            width: 100%;
+            margin-bottom: 24px;
+            text-align: left;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .success-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        /* ─────────────────────────────────────────
+   SCREEN: HISTORIQUE
+───────────────────────────────────────── */
+        #screen-history {
+            background: var(--bg);
+        }
+
+        .history-filters {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            flex-shrink: 0;
+        }
+
+        .history-filters::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-chip {
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--muted);
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all .15s;
+            flex-shrink: 0;
+        }
+
+        .filter-chip.active {
+            background: var(--text);
+            color: #fff;
+            border-color: var(--text);
+        }
+
+        .history-list {
+            padding: 4px 16px 24px;
+        }
+
+        .history-day-label {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            padding: 12px 0 8px;
+        }
+
+        .history-fiche {
+            background: var(--surface);
+            border-radius: var(--r-sm);
+            border: 1.5px solid var(--border);
+            padding: 14px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all .15s;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .history-fiche:hover {
+            border-color: var(--blue);
+        }
+
+        .hf-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .hf-plat {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .hf-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .hf-row {
+            display: flex;
+            gap: 16px;
+        }
+
+        .hf-cell {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .hf-cell strong {
+            color: var(--text);
+        }
+
+        /* ─────────────────────────────────────────
+   SCREEN: DETAIL FICHE
+───────────────────────────────────────── */
+        #screen-detail {
+            background: var(--bg);
+        }
+
+        .detail-hero {
+            padding: 20px 16px 16px;
+            background: linear-gradient(160deg, #edf4ff, #f0fdf4);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-plat {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -.3px;
+            margin-bottom: 4px;
+        }
+
+        .detail-event {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 14px;
+        }
+
+        .detail-temp-row {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+
+        .detail-temp-num {
+            font-size: 52px;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .detail-temp-unit {
+            font-size: 20px;
+            color: var(--muted);
+        }
+
+        .detail-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-section-title {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 12px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .detail-cell {
+            background: var(--surface2);
+            border-radius: var(--r-sm);
+            padding: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .detail-cell-lbl {
+            font-size: 11px;
+            color: var(--muted);
+            margin-bottom: 3px;
+        }
+
+        .detail-cell-val {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .detail-photo {
+            width: 100%;
+            border-radius: var(--r-sm);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .detail-photo img {
+            width: 100%;
+            max-height: 220px;
+            object-fit: cover;
+        }
+
+        .detail-comment {
+            background: var(--surface2);
+            border-radius: var(--r-sm);
+            padding: 14px;
+            font-size: 13px;
+            line-height: 1.6;
+            border: 1px solid var(--border);
+            color: var(--text2);
+        }
+
+        /* ─────────────────────────────────────────
+   OFFLINE BANNER
+───────────────────────────────────────── */
+        .offline-banner {
+            display: none;
+            background: var(--amber-light);
+            color: var(--amber);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 8px 16px;
+            text-align: center;
+            border-bottom: 1px solid rgba(217, 119, 6, .2);
+            flex-shrink: 0;
+        }
+
+        .offline-banner.visible {
+            display: block;
+        }
+
+        /* ─────────────────────────────────────────
+   TOAST
+───────────────────────────────────────── */
+        #toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--text);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 12px 20px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            transition: all .3s;
+            z-index: 1000;
+            white-space: nowrap;
+            pointer-events: none;
+            max-width: calc(100vw - 40px);
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ─────────────────────────────────────────
+   LOADER
+───────────────────────────────────────── */
+        .loader-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, .75);
+            backdrop-filter: blur(4px);
+            z-index: 500;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .loader-overlay.visible {
+            display: flex;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--green);
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loader-label {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="app">
+
+        <!-- ══════════════════════════════════════
+       OFFLINE BANNER
+  ══════════════════════════════════════ -->
+        <div class="offline-banner" id="offlineBanner">
+            ⚠️ Mode hors-ligne — les fiches seront synchronisées au retour du réseau
+        </div>
+
+        <!-- ══════════════════════════════════════
+       SCREEN 1 : LOGIN
+  ══════════════════════════════════════ -->
+        <div class="screen active" id="screen-login">
+            <div class="login-logo">🌡️</div>
+            <div class="login-title">TraçaFood</div>
+            <div class="login-sub">Contrôle sanitaire HACCP<br>pour la restauration événementielle</div>
+
+            <button class="btn-google" onclick="handleGoogleLogin()">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path fill="#4285F4"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05"
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
+                    <path fill="#EA4335"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                </svg>
+                Continuer avec Google
+            </button>
+
+            <div class="login-footer">
+                Accès réservé aux agents accrédités<br>
+                Connexion sécurisée via votre compte Google
+            </div>
+            <div class="login-version">TraçaFood v1.0 — Phase 2</div>
+        </div>
+
+        <!-- ══════════════════════════════════════
+       SCREEN 2 : HOME
+  ══════════════════════════════════════ -->
+        <div class="screen" id="screen-home">
+            <div class="topbar">
+                <div class="topbar-title">🌡️ TraçaFood</div>
+                <div class="topbar-avatar" id="homeAvatar">–</div>
+            </div>
+
+            <div class="scroll-body">
+                <div class="home-header">
+                    <div class="home-greet">Bonjour 👋</div>
+                    <div class="home-name" id="homeName">–</div>
+                </div>
+
+                <!-- Événement actif -->
+                <div id="eventCardWrap" style="margin: 0 16px 20px;">
+                    <div class="event-card">
+                        <div class="event-card-top">
+                            <div class="event-label">Événement actif</div>
+                            <div class="event-name" id="homeEventName">Chargement…</div>
+                            <div class="event-meta" id="homeEventMeta">–</div>
+                        </div>
+                        <div class="event-stats">
+                            <div class="event-stat">
+                                <div class="event-stat-val val-green" id="statTotal">–</div>
+                                <div class="event-stat-lbl">Contrôles</div>
+                            </div>
+                            <div class="event-stat">
+                                <div class="event-stat-val val-green" id="statTaux">–</div>
+                                <div class="event-stat-lbl">Conformes</div>
+                            </div>
+                            <div class="event-stat">
+                                <div class="event-stat-val val-amber" id="statAlerts">–</div>
+                                <div class="event-stat-lbl">Alertes</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="home-actions">
+                    <button class="home-cta-main" onclick="goToForm()">
+                        <span>
+                            <div style="font-size:13px;font-weight:500;opacity:.85;margin-bottom:2px;">Nouveau contrôle
+                                HACCP</div>
+                            <div style="font-size:17px;">Saisir une fiche</div>
+                        </span>
+                        <span class="cta-icon">＋</span>
+                    </button>
+                    <button class="home-cta-secondary" onclick="goTo('history')">
+                        <span>📋 Mes contrôles</span>
+                        <span style="color:var(--muted)">→</span>
+                    </button>
+                </div>
+
+                <!-- Derniers contrôles -->
+                <div class="section-title">Derniers contrôles</div>
+                <div id="recentList">
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <div class="empty-text">Aucun contrôle enregistré</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════
+       SCREEN 3 : FORMULAIRE
+  ══════════════════════════════════════ -->
+        <div class="screen" id="screen-form">
+            <div class="topbar">
+                <button class="topbar-back" onclick="formPrev()">←</button>
+                <div class="topbar-title" id="formTopTitle">Nouveau contrôle</div>
+                <div class="topbar-pill" id="formPill">1 / 4</div>
+            </div>
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" id="progressFill" style="width:25%"></div>
+            </div>
+
+            <div class="scroll-body with-footer" id="formScrollBody">
+
+                <!-- STEP 1 -->
+                <div class="form-body" id="step1">
+                    <div class="step-eyebrow">Étape 1 sur 4</div>
+                    <div class="step-title">Identification du plat</div>
+
+                    <div class="field">
+                        <div class="field-label">Événement <span class="field-req">*</span></div>
+                        <select class="field-select" id="f-evenement">
+                            <option value="">Sélectionner…</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">Plat / Aliment <span class="field-req">*</span></div>
+                        <input class="field-input" type="text" id="f-plat" placeholder="ex. Couscous royal, Yaourt…"
+                            autocomplete="off">
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">Type de liaison <span class="field-req">*</span></div>
+                        <div class="chips">
+                            <div class="chip active" data-liaison="chaude" onclick="selectLiaison(this)">🔥 Chaude ≥63°C
+                            </div>
+                            <div class="chip" data-liaison="froide" onclick="selectLiaison(this)">❄️ Froide ≤10°C</div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">Lieu de contrôle <span class="field-req">*</span></div>
+                        <select class="field-select" id="f-lieu">
+                            <option value="">Sélectionner…</option>
+                            <option>Cuisine principale</option>
+                            <option>Zone de distribution</option>
+                            <option>Réfrigérateur 1</option>
+                            <option>Réfrigérateur 2</option>
+                            <option>Chambre froide</option>
+                            <option>Véhicule de transport</option>
+                            <option>Zone de réception</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">N° Marmite / Lot</div>
+                        <input class="field-input" type="text" id="f-marmite" placeholder="ex. N°3 (optionnel)"
+                            autocomplete="off">
+                    </div>
+                </div>
+
+                <!-- STEP 2 -->
+                <div class="form-body" id="step2" style="display:none">
+                    <div class="step-eyebrow">Étape 2 sur 4</div>
+                    <div class="step-title">Température mesurée</div>
+
+                    <div class="field">
+                        <div class="temp-widget">
+                            <div class="temp-row">
+                                <div class="temp-display">
+                                    <div class="temp-num" id="tempDisplay">72</div>
+                                    <div class="temp-unit">°C</div>
+                                </div>
+                                <div class="temp-btns">
+                                    <button class="temp-btn" onclick="adjustTemp(1)" aria-label="Augmenter">+</button>
+                                    <button class="temp-btn" onclick="adjustTemp(-1)" aria-label="Diminuer">−</button>
+                                </div>
+                            </div>
+                            <div class="temp-badge badge-ok" id="tempBadge">✅ Conforme — liaison chaude ≥63°C</div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">Ou saisir manuellement</div>
+                        <input class="field-input" type="number" id="f-temp-input" placeholder="ex. 72.5" step="0.1"
+                            min="-30" max="150" oninput="onTempInput(this.value)">
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">Heure du relevé <span class="field-req">*</span></div>
+                        <input class="field-input" type="time" id="f-heure">
+                    </div>
+                </div>
+
+                <!-- STEP 3 -->
+                <div class="form-body" id="step3" style="display:none">
+                    <div class="step-eyebrow">Étape 3 sur 4</div>
+                    <div class="step-title">Photo & commentaire</div>
+
+                    <div class="field">
+                        <div class="field-label">Photo du thermomètre <span class="field-req">*</span></div>
+                        <div class="photo-drop" id="photoDrop" onclick="triggerPhoto()">
+                            <div class="photo-drop-icon">📷</div>
+                            <div class="photo-drop-label">Prendre une photo</div>
+                            <div class="photo-drop-hint">Thermomètre + plat bien visibles</div>
+                        </div>
+                        <div class="photo-preview-wrap" id="photoPreviewWrap">
+                            <img id="photoPreviewImg" src="" alt="Photo du contrôle">
+                            <div class="photo-preview-badge">📷 Photo ajoutée</div>
+                        </div>
+                        <button class="photo-retake" id="photoRetakeBtn" onclick="retakePhoto()">🔄 Reprendre la
+                            photo</button>
+                        <input type="file" id="photo-input" accept="image/*" capture="environment"
+                            onchange="onPhotoSelected(this)">
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">Commentaire</div>
+                        <textarea class="field-textarea" id="f-comment"
+                            placeholder="Observations, anomalies, actions correctives…"></textarea>
+                    </div>
+                </div>
+
+                <!-- STEP 4 : RECAP -->
+                <div class="form-body" id="step4" style="display:none">
+                    <div class="step-eyebrow">Étape 4 sur 4</div>
+                    <div class="step-title">Récapitulatif</div>
+                    <div class="recap-card" id="recapCard">
+                        <!-- rempli dynamiquement -->
+                    </div>
+                </div>
+
+            </div><!-- /scroll-body -->
+
+            <div class="sticky-footer">
+                <button class="btn btn-primary" id="btnFormNext" onclick="formNext()">
+                    <span id="btnFormNextLabel">Continuer</span>
+                    <span>→</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════
+       SCREEN 4 : SUCCÈS
+  ══════════════════════════════════════ -->
+        <div class="screen" id="screen-success">
+            <div class="success-ring">✅</div>
+            <div class="success-title">Contrôle enregistré</div>
+            <div class="success-sub" id="successSub">Fiche sauvegardée dans Google Sheets.</div>
+            <div class="success-meta" id="successMeta"></div>
+            <div class="success-actions">
+                <button class="btn btn-primary" onclick="goToForm()">＋ Nouveau contrôle</button>
+                <button class="btn btn-secondary" onclick="goTo('history')">Voir mes contrôles</button>
+                <button class="btn btn-secondary" onclick="goTo('home')">Retour à l'accueil</button>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════
+       SCREEN 5 : HISTORIQUE
+  ══════════════════════════════════════ -->
+        <div class="screen" id="screen-history">
+            <div class="topbar">
+                <button class="topbar-back" onclick="goTo('home')">←</button>
+                <div class="topbar-title">Mes contrôles</div>
+            </div>
+
+            <div class="history-filters">
+                <div class="filter-chip active" onclick="filterHistory('all', this)">Tous</div>
+                <div class="filter-chip" onclick="filterHistory('oui', this)">✅ Conformes</div>
+                <div class="filter-chip" onclick="filterHistory('attention', this)">⚠️ Attention</div>
+                <div class="filter-chip" onclick="filterHistory('non', this)">🚨 Non-conformes</div>
+            </div>
+
+            <div class="scroll-body">
+                <div class="history-list" id="historyList">
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <div class="empty-text">Aucun contrôle trouvé</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════
+       SCREEN 6 : DETAIL FICHE
+  ══════════════════════════════════════ -->
+        <div class="screen" id="screen-detail">
+            <div class="topbar">
+                <button class="topbar-back" id="detailBack" onclick="goTo('history')">←</button>
+                <div class="topbar-title" id="detailTitle">Rapport</div>
+            </div>
+            <div class="scroll-body">
+                <div id="detailContent"></div>
+            </div>
+        </div>
+
+    </div><!-- /#app -->
+
+    <!-- LOADER -->
+    <div class="loader-overlay" id="loader">
+        <div class="spinner"></div>
+        <div class="loader-label" id="loaderLabel">Enregistrement…</div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast"></div>
+
+
+    <script>
+        // ════════════════════════════════════════════════════════════
+        //  CONFIGURATION
+        // ════════════════════════════════════════════════════════════
+
+        // ⚠️ REMPLACE CETTE URL par ton URL de déploiement Apps Script
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwub40jq0DcyvzsgUeeeOJuV4IQcoJqWb8DbD-vKnjqBEU2TfIdi1fg4l_QWte3-9GO8g/exec';
+
+        // Remplace par ton Client ID Google OAuth
+        // (Créer sur console.cloud.google.com > APIs & Services > Credentials)
+        const GOOGLE_CLIENT_ID = '681424267749-nkf65371v5ivq73j4dfscmov2guu0r5k.apps.googleusercontent.com';
+
+        const HACCP = { CHAUD_MIN: 63, FROID_MAX: 10 };
+
+
+        // ════════════════════════════════════════════════════════════
+        //  STATE
+        // ════════════════════════════════════════════════════════════
+        const State = {
+            user: null,   // { name, email, avatar }
+            evenements: [],     // liste des événements API
+            fiches: [],     // fiches chargées depuis API + localStorage
+            currentStep: 1,
+            liaison: 'chaude',
+            temperature: 72,
+            photoBase64: null,
+            photoMime: null,
+            offlineQueue: [],   // fiches en attente de sync
+        };
+
+        // ════════════════════════════════════════════════════════════
+        //  OFFLINE DETECTION
+        // ════════════════════════════════════════════════════════════
+        function updateOfflineUI() {
+            const banner = document.getElementById('offlineBanner');
+            if (!navigator.onLine) {
+                banner.classList.add('visible');
+            } else {
+                banner.classList.remove('visible');
+                syncOfflineQueue();
+            }
+        }
+        window.addEventListener('online', updateOfflineUI);
+        window.addEventListener('offline', updateOfflineUI);
+
+        function loadOfflineQueue() {
+            try {
+                State.offlineQueue = JSON.parse(localStorage.getItem('tracafood_offline') || '[]');
+            } catch { State.offlineQueue = []; }
+        }
+        function saveOfflineQueue() {
+            localStorage.setItem('tracafood_offline', JSON.stringify(State.offlineQueue));
+        }
+        async function syncOfflineQueue() {
+            if (!State.offlineQueue.length) return;
+            showToast('🔄 Synchronisation de ' + State.offlineQueue.length + ' fiche(s)…');
+            const toSync = [...State.offlineQueue];
+            State.offlineQueue = [];
+            saveOfflineQueue();
+            for (const item of toSync) {
+                try { await apiPost('create_fiche', item); }
+                catch { State.offlineQueue.push(item); }
+            }
+            saveOfflineQueue();
+            if (!State.offlineQueue.length) showToast('✅ Synchronisation terminée');
+            else showToast('⚠️ ' + State.offlineQueue.length + ' fiche(s) non synchronisée(s)');
+        }
+
+
+        // ════════════════════════════════════════════════════════════
+        //  AUTH GOOGLE
+        // ════════════════════════════════════════════════════════════
+        function handleGoogleLogin() {
+            // Si Client ID non configuré : mode démo
+            if (GOOGLE_CLIENT_ID === 'PASTE_YOUR_GOOGLE_CLIENT_ID_HERE') {
+                State.user = { name: 'Agent Démo', email: 'demo@tracafood.fr', initials: 'AD' };
+                onLoginSuccess();
+                return;
+            }
+
+            google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: onGoogleCredential,
+                auto_select: false,
+            });
+            google.accounts.id.prompt();
+        }
+
+        function onGoogleCredential(response) {
+            try {
+                const payload = JSON.parse(atob(response.credential.split('.')[1]));
+                const name = payload.name || payload.email;
+                State.user = {
+                    name,
+                    email: payload.email,
+                    initials: name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2),
+                    picture: payload.picture || null,
+                };
+                onLoginSuccess();
+            } catch (e) {
+                showToast('❌ Erreur de connexion Google');
+            }
+        }
+
+        async function onLoginSuccess() {
+            // Sauvegarde session
+            localStorage.setItem('tracafood_user', JSON.stringify(State.user));
+
+            document.getElementById('homeName').textContent = State.user.name;
+            document.getElementById('homeAvatar').textContent = State.user.initials;
+
+            showLoader('Chargement…');
+            await loadEvenements();
+            await loadStats();
+            await loadRecentFiches();
+            hideLoader();
+
+            goTo('home');
+        }
+
+        // Tentative de restauration de session
+        function tryRestoreSession() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('tracafood_user'));
+                if (saved && saved.email) {
+                    State.user = saved;
+                    onLoginSuccess();
+                    return true;
+                }
+            } catch { }
+            return false;
+        }
+
+
+        // ════════════════════════════════════════════════════════════
+        //  API CALLS
+        // ════════════════════════════════════════════════════════════
+        async function apiGet(params) {
+            const qs = new URLSearchParams(params).toString();
+            const url = API_URL + '?' + qs;
+            const res = await fetch(url, { redirect: 'follow' });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+        }
+
+        async function apiPost(action, data) {
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action, data }),
+                redirect: 'follow',
+            });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+        }
+
+        async function loadEvenements() {
+            try {
+                const r = await apiGet({ action: 'evenements' });
+                if (r.ok && r.evenements) {
+                    State.evenements = r.evenements;
+                    const sel = document.getElementById('f-evenement');
+                    r.evenements.forEach(e => {
+                        const opt = document.createElement('option');
+                        opt.value = e.id;
+                        opt.textContent = e.nom;
+                        sel.appendChild(opt);
+                    });
+                    const first = r.evenements[0];
+                    if (first) {
+                        document.getElementById('homeEventName').textContent = first.nom;
+                        document.getElementById('homeEventMeta').textContent = first.date + ' · ' + first.site + ' · ' + first.convives + ' convives';
+                    }
+                }
+            } catch { }
+        }
+
+        async function loadStats() {
+            try {
+                const evtId = State.evenements[0]?.id;
+                const params = { action: 'stats' };
+                if (evtId) params.evenement = evtId;
+                const r = await apiGet(params);
+                if (r.ok && r.kpis) {
+                    document.getElementById('statTotal').textContent = r.kpis.total;
+                    document.getElementById('statTaux').textContent = r.kpis.taux_conformite + '%';
+                    document.getElementById('statAlerts').textContent = r.kpis.attentions + r.kpis.non_conformes;
+                }
+            } catch { }
+        }
+
+        async function loadRecentFiches() {
+            try {
+                const params = { action: 'fiches', limit: '10' };
+                if (State.user?.email) params.agent_email = State.user.email;
+                const r = await apiGet(params);
+                if (r.ok && r.fiches) {
+                    State.fiches = r.fiches;
+                    renderRecentList(r.fiches.slice(0, 5));
+                    renderHistoryList(r.fiches);
+                }
+            } catch {
+                // Afficher les fiches offline si disponibles
+                const offline = State.offlineQueue;
+                if (offline.length) renderRecentList(offline.slice(0, 5));
+            }
+        }
+
+
+        // ════════════════════════════════════════════════════════════
+        //  RENDER — LISTE RÉCENTE
+        // ════════════════════════════════════════════════════════════
+        function renderRecentList(fiches) {
+            const el = document.getElementById('recentList');
+            if (!fiches.length) {
+                el.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Aucun contrôle enregistré</div></div>`;
+                return;
+            }
+            el.innerHTML = fiches.map(f => ficheItemHTML(f)).join('');
+        }
+
+        function ficheItemHTML(f) {
+            const conf = f.conforme || 'oui';
+            const dot = conf === 'oui' ? 'ok' : conf === 'attention' ? 'warn' : 'bad';
+            const tcls = conf === 'oui' ? 'temp-ok' : conf === 'attention' ? 'temp-warn' : 'temp-bad';
+            const t = parseFloat(f.temperature) || 0;
+            const lieu = f.lieu || '–';
+            const heure = f.heure_releve || '';
+            return `<div class="fiche-item" onclick="openDetail('${f.id}')">
+    <div class="fiche-dot dot-${dot}"></div>
+    <div class="fiche-info">
+      <div class="fiche-plat">${esc(f.plat)}</div>
+      <div class="fiche-meta">${esc(lieu)}${heure ? ' · ' + heure : ''}</div>
+    </div>
+    <div class="fiche-temp ${tcls}">${t}°C</div>
+  </div>`;
+        }
+
+
+        // ════════════════════════════════════════════════════════════
+        //  RENDER — HISTORIQUE
+        // ════════════════════════════════════════════════════════════
+        let historyFilter = 'all';
+
+        function filterHistory(filter, el) {
+            historyFilter = filter;
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            const filtered = filter === 'all'
+                ? State.fiches
+                : State.fiches.filter(f => f.conforme === filter);
+            renderHistoryList(filtered);
+        }
+
+        function renderHistoryList(fiches) {
+            const el = document.getElementById('historyList');
+            if (!fiches.length) {
+                el.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Aucun contrôle trouvé</div></div>`;
+                return;
+            }
+
+            // Groupement par date
+            const byDate = {};
+            fiches.forEach(f => {
+                const d = f.date_releve || '–';
+                if (!byDate[d]) byDate[d] = [];
+                byDate[d].push(f);
+            });
+
+            el.innerHTML = Object.entries(byDate)
+                .sort(([a], [b]) => b.localeCompare(a))
+                .map(([date, items]) => `
+      <div class="history-day-label">${formatDate(date)}</div>
+      ${items.map(f => historyFicheHTML(f)).join('')}
+    `).join('');
+        }
+
+        function historyFicheHTML(f) {
+            const conf = f.conforme || 'oui';
+            const badgeClass = conf === 'oui' ? 'badge-ok' : conf === 'attention' ? 'badge-warn' : 'badge-bad';
+            const badgeText = conf === 'oui' ? '✅ Conforme' : conf === 'attention' ? '⚠️ Attention' : '🚨 Non-conforme';
+            const t = parseFloat(f.temperature) || 0;
+            return `<div class="history-fiche" onclick="openDetail('${f.id}')">
+    <div class="hf-top">
+      <div class="hf-plat">${esc(f.plat)}</div>
+      <div class="hf-badge ${badgeClass}">${badgeText}</div>
+    </div>
+    <div class="hf-row">
+      <div class="hf-cell">🌡️ <strong>${t}°C</strong></div>
+      <div class="hf-cell">📍 <strong>${esc(f.lieu || '–')}</strong></div>
+      <div class="hf-cell">🕐 <strong>${f.heure_releve || '–'}</strong></div>
+    </div>
+  </div>`;
+        }
+
+
+        // ════════════════════════════════════════════════════════════
+        //  RENDER — DETAIL FICHE
+        // ════════════════════════════════════════════════════════════
+        function openDetail(id) {
+            const fiche = State.fiches.find(f => f.id === id);
+            if (!fiche) return;
+
+            const conf = fiche.conforme || 'oui';
+            const tcls = conf === 'oui' ? 'var(--green)' : conf === 'attention' ? 'var(--amber)' : 'var(--red)';
+            const badgeClass = conf === 'oui' ? 'badge-ok' : conf === 'attention' ? 'badge-warn' : 'badge-bad';
+            const badgeText = conf === 'oui' ? '✅ Conforme' : conf === 'attention' ? '⚠️ Attention' : '🚨 Non-conforme';
+
+            document.getElementById('detailTitle').textContent = fiche.id || 'Rapport';
+
+            const photoHTML = fiche.photo_url
+                ? `<div class="detail-section">
+         <div class="detail-section-title">Photo</div>
+         <div class="detail-photo"><img src="${fiche.photo_url}" alt="Photo contrôle" loading="lazy"></div>
+       </div>`
+                : '';
+
+            const commentHTML = fiche.commentaire
+                ? `<div class="detail-section">
+         <div class="detail-section-title">Commentaire</div>
+         <div class="detail-comment">${esc(fiche.commentaire)}</div>
+       </div>`
+                : '';
+
+            document.getElementById('detailContent').innerHTML = `
+    <div class="detail-hero">
+      <div class="detail-plat">${esc(fiche.plat)}</div>
+      <div class="detail-event">${esc(fiche.evenement || '–')} · ${esc(fiche.lieu || '–')}</div>
+      <div class="detail-temp-row">
+        <div class="detail-temp-num" style="color:${tcls}">${fiche.temperature}</div>
+        <div class="detail-temp-unit">°C</div>
+      </div>
+      <div class="hf-badge ${badgeClass}" style="display:inline-flex;">${badgeText}</div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Informations</div>
+      <div class="detail-grid">
+        <div class="detail-cell"><div class="detail-cell-lbl">Date</div><div class="detail-cell-val">${fiche.date_releve || '–'}</div></div>
+        <div class="detail-cell"><div class="detail-cell-lbl">Heure</div><div class="detail-cell-val">${fiche.heure_releve || '–'}</div></div>
+        <div class="detail-cell"><div class="detail-cell-lbl">Liaison</div><div class="detail-cell-val">${fiche.liaison || '–'}</div></div>
+        <div class="detail-cell"><div class="detail-cell-lbl">Marmite</div><div class="detail-cell-val">${fiche.marmite || '–'}</div></div>
+        <div class="detail-cell"><div class="detail-cell-lbl">Agent</div><div class="detail-cell-val">${esc(fiche.agent_nom || '–')}</div></div>
+        <div class="detail-cell"><div class="detail-cell-lbl">Réf.</div><div class="detail-cell-val" style="font-size:11px;font-family:monospace">${fiche.id || '–'}</div></div>
+      </div>
+    </div>
+
+    ${photoHTML}
+    ${commentHTML}
+  `;
+
+            goTo('detail');
+        }
+
+
+        // ════════════════════════════════════════════════════════════
+        //  FORMULAIRE — NAVIGATION ENTRE ÉTAPES
+        // ════════════════════════════════════════════════════════════
+        function goToForm() {
+            State.currentStep = 1;
+            State.temperature = 72;
+            State.photoBase64 = null;
+            State.photoMime = null;
+
+            // Heure par défaut = maintenant
+            const now = new Date();
+            document.getElementById('f-heure').value =
+                String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+            // Liaison par défaut = chaude
+            State.liaison = 'chaude';
+            document.querySelectorAll('[data-liaison]').forEach(c => {
+                c.classList.toggle('active', c.dataset.liaison === 'chaude');
+            });
+
+            updateTempUI();
+            updateFormUI();
+            goTo('form');
+        }
+
+        function formNext() {
+            if (!validateStep()) return;
+
+            if (State.currentStep < 4) {
+                if (State.currentStep === 3) buildRecap();
+                State.currentStep++;
+                updateFormUI();
+                document.getElementById('formScrollBody').scrollTop = 0;
+            } else {
+                submitFiche();
+            }
+        }
+
+        function formPrev() {
+            if (State.currentStep > 1) {
+                State.currentStep--;
+                updateFormUI();
+                document.getElementById('formScrollBody').scrollTop = 0;
+            } else {
+                goTo('home');
+            }
+        }
+
+        function updateFormUI() {
+            const s = State.currentStep;
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById('step' + i).style.display = i === s ? 'block' : 'none';
+            }
+            document.getElementById('progressFill').style.width = (s * 25) + '%';
+            document.getElementById('formPill').textContent = s + ' / 4';
+            document.getElementById('btnFormNextLabel').textContent = s === 4 ? 'Soumettre' : 'Continuer';
+
+            const titles = ['Identification', 'Température', 'Photo', 'Récapitulatif'];
+            document.getElementById('formTopTitle').textContent = titles[s - 1];
+        }
+
+        function validateStep() {
+            const s = State.currentStep;
+            if (s === 1) {
+                if (!document.getElementById('f-evenement').value) { showToast('Sélectionne un événement'); return false; }
+                if (!document.getElementById('f-plat').value.trim()) { showToast('Saisis le nom du plat'); return false; }
+                if (!document.getElementById('f-lieu').value) { showToast('Sélectionne un lieu'); return false; }
+            }
+            if (s === 2) {
+                if (!document.getElementById('f-heure').value) { showToast('Indique l\'heure du relevé'); return false; }
+            }
+            if (s === 3) {
+                if (!State.photoBase64) { showToast('La photo est obligatoire'); return false; }
+            }
+            return true;
+        }
+
+
+        // ════════════════════════════════════════════════════════════
+        //  FORMULAIRE — TEMPÉRATURE
+        // ════════════════════════════════════════════════════════════
+        function adjustTemp(delta) {
+            State.temperature = Math.max(-30, Math.min(150, State.temperature + delta));
+            document.getElementById('f-temp-input').value = State.temperature;
+            updateTempUI();
+        }
+
+        function onTempInput(val) {
+            const t = parseFloat(val);
+            if (!isNaN(t)) { State.temperature = t; updateTempUI(); }
+        }
+
+        function updateTempUI() {
+            const t = State.temperature;
+            const el = document.getElementById('tempDisplay');
+            const bdg = document.getElementById('tempBadge');
+            el.textContent = t;
+
+            const { cls, text, color } = evalTemp(t, State.liaison);
+            bdg.className = 'temp-badge ' + cls;
+            bdg.textContent = text;
+            el.style.color = color;
+        }
+
+        function evalTemp(t, liaison) {
+            if (liaison === 'chaude') {
+                if (t >= HACCP.CHAUD_MIN) return { cls: 'badge-ok', color: 'var(--green)', text: '✅ Conforme — chaude ≥' + HACCP.CHAUD_MIN + '°C' };
+                if (t >= 58) return { cls: 'badge-warn', color: 'var(--amber)', text: '⚠️ Attention — proche limite (' + t + '°C)' };
+                return { cls: 'badge-bad', color: 'var(--red)', text: '🚨 Non-conforme — zone dangereuse (' + t + '°C)' };
+            }
+            if (t <= HACCP.FROID_MAX) return { cls: 'badge-ok', color: 'var(--green)', text: '✅ Conforme — froide ≤' + HACCP.FROID_MAX + '°C' };
+            if (t <= 13) return { cls: 'badge-warn', color: 'var(--amber)', text: '⚠️ Attention — proche limite (' + t + '°C)' };
+            return { cls: 'badge-bad', color: 'var(--red)', text: '🚨 Non-conforme — rupture chaîne froide (' + t + '°C)' };
+        }
+
+        function selectLiaison(el) {
+            document.querySelectorAll('[data-liaison]').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            State.liaison = el.dataset.liaison;
+            updateTempUI();
+        }
+
+
+        // ════════════════════════════════════════════════════════════
+        //  FORMULAIRE — PHOTO
+        // ════════════════════════════════════════════════════════════
+        function triggerPhoto() {
+            document.getElementById('photo-input').click();
+        }
+
+        function retakePhoto() {
+            State.photoBase64 = null;
+            State.photoMime = null;
+            document.getElementById('photoDrop').style.display = '';
+            document.getElementById('photoPreviewWrap').style.display = 'none';
+            document.getElementById('photoRetakeBtn').style.display = 'none';
+            document.getElementById('photo-input').value = '';
+        }
+
+        function onPhotoSelected(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // Vérification taille (max 2 MB)
+            if (file.size > 2 * 1024 * 1024) {
+                showToast('⚠️ Photo trop lourde (max 2 MB)');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUrl = e.target.result;
+                State.photoBase64 = dataUrl.split(',')[1];
+                State.photoMime = file.type;
+
+                document.getElementById('photoPreviewImg').src = dataUrl;
+                document.getElementById('photoDrop').style.display = 'none';
+                document.getElementById('photoPreviewWrap').style.display = 'block';
+                document.getElementById('photoRetakeBtn').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+
+        // ════════════════════════════════════════════════════════════
+        //  FORMULAIRE — RÉCAPITULATIF
+        // ════════════════════════════════════════════════════════════
+        function buildRecap() {
+            const evtId = document.getElementById('f-evenement').value;
+            const evtName = State.evenements.find(e => e.id === evtId)?.nom || evtId;
+            const { text } = evalTemp(State.temperature, State.liaison);
+
+            const rows = [
+                ['Événement', evtName],
+                ['Plat', document.getElementById('f-plat').value],
+                ['Liaison', State.liaison === 'chaude' ? '🔥 Chaude' : '❄️ Froide'],
+                ['Lieu', document.getElementById('f-lieu').value],
+                ['Marmite', document.getElementById('f-marmite').value || '–'],
+                ['Température', State.temperature + '°C — ' + text],
+                ['Heure', document.getElementById('f-heure').value],
+                ['Photo', State.photoBase64 ? '✅ Ajoutée' : '–'],
+                ['Agent', State.user?.name || '–'],
+            ];
+
+            document.getElementById('recapCard').innerHTML = rows.map(([k, v]) =>
+                `<div class="recap-row"><span class="recap-key">${k}</span><span class="recap-val">${esc(String(v))}</span></div>`
+            ).join('');
+        }
+
+
+        // ════════════════════════════════════════════════════════════
+        //  SUBMIT — Envoyer la fiche
+        // ════════════════════════════════════════════════════════════
+        async function submitFiche() {
+            const evtId = document.getElementById('f-evenement').value;
+            const { cls: confCls } = evalTemp(State.temperature, State.liaison);
+            const conforme = confCls === 'badge-ok' ? 'oui' : confCls === 'badge-warn' ? 'attention' : 'non';
+
+            const data = {
+                evenement: evtId,
+                agent_email: State.user?.email || '',
+                agent_nom: State.user?.name || '',
+                plat: document.getElementById('f-plat').value.trim(),
+                liaison: State.liaison,
+                lieu: document.getElementById('f-lieu').value,
+                marmite: document.getElementById('f-marmite').value.trim(),
+                temperature: State.temperature,
+                heure_releve: document.getElementById('f-heure').value,
+                commentaire: document.getElementById('f-comment').value.trim(),
+                photo_base64: State.photoBase64 || null,
+                photo_mime: State.photoMime || null,
+            };
+
+            showLoader('Enregistrement…');
+
+            try {
+                let result;
+                if (!navigator.onLine) {
+                    // Mode offline
+                    data.id = 'CTL-OFFLINE-' + Date.now();
+                    data.conforme = conforme;
+                    State.offlineQueue.push(data);
+                    saveOfflineQueue();
+                    result = { id: data.id, conforme, offline: true };
+                } else {
+                    const r = await apiPost('create_fiche', data);
+                    if (!r.ok) throw new Error(r.error || 'Erreur API');
+                    result = r;
+                }
+
+                // Mise à jour state local
+                const localFiche = {
+                    ...data,
+                    id: result.id,
+                    conforme: result.conforme || conforme,
+                    date_releve: new Date().toISOString().slice(0, 10),
+                };
+                State.fiches.unshift(localFiche);
+
+                // Afficher succès
+                hideLoader();
+                showSuccess(result);
+
+            } catch (err) {
+                hideLoader();
+                showToast('❌ Erreur : ' + err.message);
+            }
+        }
+
+        function showSuccess(result) {
+            const offline = result.offline;
+            document.getElementById('successSub').textContent = offline
+                ? 'Fiche sauvegardée localement. Elle sera synchronisée dès le retour du réseau.'
+                : 'Fiche enregistrée dans Google Sheets et photo sauvegardée.';
+
+            const { text } = evalTemp(State.temperature, State.liaison);
+            document.getElementById('successMeta').innerHTML = `
+    <div class="recap-row"><span class="recap-key">Référence</span><span class="recap-val" style="font-family:monospace;font-size:12px;color:var(--blue)">${result.id}</span></div>
+    <div class="recap-row"><span class="recap-key">Plat</span><span class="recap-val">${esc(document.getElementById('f-plat').value)}</span></div>
+    <div class="recap-row"><span class="recap-key">Statut</span><span class="recap-val">${text}</span></div>
+  `;
+
+            goTo('success');
+
+            // Rafraîchir stats en arrière-plan
+            loadStats();
+        }
+
+
+        // ════════════════════════════════════════════════════════════
+        //  NAVIGATION
+        // ════════════════════════════════════════════════════════════
+        function goTo(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-' + screenId).classList.add('active');
+            window.scrollTo(0, 0);
+
+            // Rafraîchir historique à chaque ouverture
+            if (screenId === 'history') {
+                loadRecentFiches().then(() => {
+                    filterHistory(historyFilter,
+                        document.querySelector('.filter-chip.active'));
+                });
+            }
+        }
+
+
+        // ════════════════════════════════════════════════════════════
+        //  UI HELPERS
+        // ════════════════════════════════════════════════════════════
+        function showLoader(label) {
+            document.getElementById('loaderLabel').textContent = label || 'Chargement…';
+            document.getElementById('loader').classList.add('visible');
+        }
+        function hideLoader() {
+            document.getElementById('loader').classList.remove('visible');
+        }
+
+        let toastTimer;
+        function showToast(msg, duration) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => el.classList.remove('show'), duration || 3000);
+        }
+
+        function esc(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function formatDate(iso) {
+            if (!iso || iso === '–') return iso;
+            const d = new Date(iso + 'T00:00:00');
+            return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+        }
+
+
+        // ════════════════════════════════════════════════════════════
+        //  INIT
+        // ════════════════════════════════════════════════════════════
+        document.addEventListener('DOMContentLoaded', () => {
+            loadOfflineQueue();
+            updateOfflineUI();
+
+            // Tenter restauration de session
+            tryRestoreSession();
+        });
+    </script>
+</body>
+
+</html>
