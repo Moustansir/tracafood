@@ -1437,9 +1437,28 @@
 
                     <div class="field">
                         <div class="field-label">Événement <span class="field-req">*</span></div>
-                        <select class="field-select" id="f-evenement">
-                            <option value="">Sélectionner…</option>
-                        </select>
+<div style="position:relative;">
+  <input class="field-input" type="text" id="f-evenement"
+    placeholder="Nom de l'événement…"
+    autocomplete="off"
+    oninput="filterEvenementSuggestions(this.value)"
+    onfocus="showEvenementSuggestions()"
+    onblur="setTimeout(hideEvenementSuggestions, 150)">
+  <div id="evenement-suggestions" style="
+    display:none;
+    position:absolute;
+    top:calc(100% + 4px);
+    left:0; right:0;
+    background:#fff;
+    border:1.5px solid var(--border);
+    border-radius:var(--r-sm);
+    box-shadow:var(--shadow-md);
+    z-index:100;
+    overflow:hidden;
+    max-height:200px;
+    overflow-y:auto;
+  "></div>
+</div>
                     </div>
 
                     <div class="field">
@@ -1781,26 +1800,58 @@
             return res.json();
         }
 
-        async function loadEvenements() {
-            try {
-                const r = await apiGet({ action: 'evenements' });
-                if (r.ok && r.evenements) {
-                    State.evenements = r.evenements;
-                    const sel = document.getElementById('f-evenement');
-                    r.evenements.forEach(e => {
-                        const opt = document.createElement('option');
-                        opt.value = e.id;
-                        opt.textContent = e.nom;
-                        sel.appendChild(opt);
-                    });
-                    const first = r.evenements[0];
-                    if (first) {
-                        document.getElementById('homeEventName').textContent = first.nom;
-                        document.getElementById('homeEventMeta').textContent = first.date + ' · ' + first.site + ' · ' + first.convives + ' convives';
-                    }
-                }
-            } catch { }
-        }
+async function loadEvenements() {
+  try {
+    const r = await apiGet({ action: 'evenements' });
+    if (r.ok && r.evenements) {
+      State.evenements = r.evenements;
+      const first = r.evenements[0];
+      if (first) {
+        const input = document.getElementById('f-evenement');
+        if (input && !input.value) input.value = first.nom;
+        document.getElementById('homeEventName').textContent = first.nom;
+        document.getElementById('homeEventMeta').textContent = first.date + ' · ' + first.site + ' · ' + first.convives + ' convives';
+      }
+    }
+  } catch {}
+}
+
+function showEvenementSuggestions() {
+  renderEvenementSuggestions(document.getElementById('f-evenement').value);
+  document.getElementById('evenement-suggestions').style.display = 'block';
+}
+function hideEvenementSuggestions() {
+  document.getElementById('evenement-suggestions').style.display = 'none';
+}
+function filterEvenementSuggestions(val) {
+  renderEvenementSuggestions(val);
+  document.getElementById('evenement-suggestions').style.display = 'block';
+}
+function renderEvenementSuggestions(val) {
+  const box = document.getElementById('evenement-suggestions');
+  const q   = (val || '').toLowerCase();
+  const matches = State.evenements.filter(e =>
+    !q || e.nom.toLowerCase().includes(q) || e.site.toLowerCase().includes(q)
+  );
+  if (!matches.length) {
+    box.innerHTML = '<div style="padding:12px 14px;font-size:13px;color:var(--muted);">Aucun événement trouvé</div>';
+    return;
+  }
+  box.innerHTML = matches.map(e => `
+    <div onclick="selectEvenement('${e.id}', '${e.nom.replace(/'/g, "\\'")}')"
+      style="padding:12px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border);"
+      onmouseover="this.style.background='var(--surface2)'"
+      onmouseout="this.style.background=''">
+      <div style="font-weight:600;">${esc(e.nom)}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;">${esc(e.date)} · ${esc(e.site)}</div>
+    </div>
+  `).join('');
+}
+function selectEvenement(id, nom) {
+  document.getElementById('f-evenement').value = nom;
+  document.getElementById('f-evenement').dataset.id = id;
+  hideEvenementSuggestions();
+}
 
         async function loadStats() {
             try {
