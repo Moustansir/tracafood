@@ -2106,7 +2106,7 @@ function selectEvenement(id, nom) {
                 if (!document.getElementById('f-heure').value) { showToast('Indique l\'heure du relevé'); return false; }
             }
             if (s === 3) {
-                if (!State.photoBase64) { showToast('La photo est obligatoire'); return false; }
+                // photo optionnelle
             }
             return true;
         }
